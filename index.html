@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Research Ledger — Kim Jueon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EAE6D9;
+    --surface:#FBFAF5;
+    --ink:#23281F;
+    --line:#C7C0AA;
+    --muted:#726C5B;
+    --teal:#29594A;
+    --teal-ink:#153228;
+    --ochre:#B3702A;
+    --rust:#A23E2E;
+    --shadow: 0 1px 0 rgba(35,40,31,0.06), 0 8px 20px -12px rgba(35,40,31,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(var(--paper), var(--paper)),
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(35,40,31,0.028) 28px);
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  .display{font-family:'Fraunces', serif;}
+
+  /* ---------- LOCK SCREEN ---------- */
+  #lock{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:var(--paper); z-index:100;
+    background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(35,40,31,0.028) 28px);
+  }
+  .lock-card{
+    background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);
+    width:min(380px, 88vw); padding:36px 32px 28px; border-radius:2px; position:relative;
+  }
+  .lock-card::before{
+    content:""; position:absolute; top:0; left:28px; width:2px; height:100%;
+    background:repeating-linear-gradient(0deg, var(--rust), var(--rust) 6px, transparent 6px, transparent 12px);
+    opacity:.35;
+  }
+  .lock-eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:10px;}
+  .lock-title{font-size:26px; font-weight:600; margin:0 0 6px; line-height:1.2;}
+  .lock-sub{font-size:13px; color:var(--muted); margin:0 0 22px; line-height:1.5;}
+  input[type=password], input[type=text]{
+    width:100%; padding:11px 12px; border:1px solid var(--line); background:#fff;
+    font-family:'IBM Plex Mono', monospace; font-size:14px; border-radius:1px; color:var(--ink);
+    outline:none;
+  }
+  input[type=password]:focus, input[type=text]:focus{border-color:var(--teal);}
+  .lock-btn{
+    margin-top:14px; width:100%; padding:11px; background:var(--teal); color:#fff; border:none;
+    font-family:'IBM Plex Sans', sans-serif; font-weight:600; font-size:14px; letter-spacing:.02em;
+    cursor:pointer; border-radius:1px;
+  }
+  .lock-btn:hover{background:var(--teal-ink);}
+  .lock-msg{font-size:12px; margin-top:10px; min-height:16px; color:var(--rust);}
+  .lock-foot{font-size:11px; color:var(--muted); margin-top:18px; line-height:1.6; border-top:1px dashed var(--line); padding-top:14px;}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none; min-height:100vh;}
+  #app.show{display:flex;}
+  aside{
+    width:236px; flex-shrink:0; background:var(--teal-ink); color:#EDE7D6; min-height:100vh;
+    padding:26px 0 20px; position:sticky; top:0; align-self:flex-start;
+  }
+  .brand{padding:0 22px 20px; border-bottom:1px solid rgba(237,231,214,0.15); margin-bottom:14px;}
+  .brand-eyebrow{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:#B7C9BE; margin-bottom:6px;}
+  .brand-title{font-family:'Fraunces', serif; font-size:19px; font-weight:600; line-height:1.25; color:#fff;}
+  nav{display:flex; flex-direction:column;}
+  .navtab{
+    text-align:left; background:none; border:none; color:#CFCABB; padding:11px 22px;
+    font-family:'IBM Plex Sans', sans-serif; font-size:13.5px; cursor:pointer; position:relative;
+    display:flex; align-items:center; gap:9px; letter-spacing:.01em;
+  }
+  .navtab .num{font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:#8FAFA0; width:16px;}
+  .navtab:hover{background:rgba(255,255,255,0.05); color:#fff;}
+  .navtab.active{background:var(--surface); color:var(--ink); font-weight:600;}
+  .navtab.active .num{color:var(--teal);}
+  .navfoot{margin-top:auto; padding:16px 22px 0; font-size:10.5px; color:#8B9186;}
+
+  main{flex:1; padding:38px 46px 80px; max-width:980px;}
+  .pagehead{margin-bottom:28px; border-bottom:1px solid var(--line); padding-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap;}
+  .pagehead h1{font-family:'Fraunces', serif; font-size:30px; margin:0 0 6px; font-weight:600;}
+  .pagehead p{margin:0; color:var(--muted); font-size:13.5px; max-width:560px; line-height:1.5;}
+  .topline{font-size:11px; color:var(--muted); text-align:right;}
+  .topline .savedstamp{color:var(--teal); font-family:'IBM Plex Mono', monospace;}
+
+  .card{background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:2px; padding:22px 24px; margin-bottom:20px;}
+  .card h2{font-family:'Fraunces', serif; font-size:18px; margin:0 0 4px; font-weight:600;}
+  .card .card-sub{font-size:12.5px; color:var(--muted); margin:0 0 16px;}
+
+  .phase-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ochre); font-weight:600; margin:18px 0 4px; padding-top:10px; border-top:1px dashed var(--line);
+  }
+  .phase-label:first-child{margin-top:0; padding-top:0; border-top:none;}
+
+  .item-row{
+    display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid #EFEBDF;
+  }
+  .item-row:last-child{border-bottom:none;}
+  .stamp{
+    flex-shrink:0; font-family:'IBM Plex Mono', monospace; font-size:9.5px; font-weight:600; letter-spacing:.06em;
+    padding:4px 8px; border-radius:2px; border:1.5px solid; text-transform:uppercase; cursor:pointer;
+    user-select:none; transform:rotate(-1.5deg); white-space:nowrap; margin-top:1px;
+  }
+  .stamp.done{color:var(--teal); border-color:var(--teal); background:rgba(41,89,74,0.07);}
+  .stamp.doing{color:var(--ochre); border-color:var(--ochre); background:rgba(179,112,42,0.08); transform:rotate(1deg);}
+  .stamp.todo{color:var(--rust); border-color:var(--rust); background:rgba(162,62,46,0.06); transform:rotate(-.5deg);}
+  .item-text{flex:1; font-size:14px; line-height:1.5; padding-top:2px;}
+  .item-text input{border:none; background:none; width:100%; font-size:14px; font-family:'IBM Plex Sans',sans-serif; color:var(--ink); padding:1px 0;}
+  .item-text input:focus{outline:none; border-bottom:1px solid var(--teal);}
+  .item-del{background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:0 4px; opacity:.5;}
+  .item-del:hover{opacity:1; color:var(--rust);}
+
+  .addrow{display:flex; gap:8px; margin-top:12px;}
+  .addrow input{flex:1; padding:9px 10px; border:1px dashed var(--line); background:transparent; font-size:13.5px; font-family:'IBM Plex Sans',sans-serif; border-radius:1px;}
+  .addrow input:focus{outline:none; border-color:var(--teal); border-style:solid;}
+  .addbtn{background:var(--teal); color:#fff; border:none; padding:0 16px; font-size:13px; font-weight:600; cursor:pointer; border-radius:1px;}
+  .addbtn:hover{background:var(--teal-ink);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{text-align:left; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; padding:6px 10px; border-bottom:1.5px solid var(--line);}
+  td{padding:9px 10px; border-bottom:1px solid #EFEBDF; vertical-align:top;}
+  td.key{font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--teal-ink); font-weight:600;}
+  .flag{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9.5px; padding:2px 6px; border-radius:2px; background:rgba(162,62,46,0.1); color:var(--rust); font-weight:600;}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr;}}
+
+  .note{border-left:3px solid var(--teal); padding:4px 0 4px 14px; margin-bottom:16px;}
+  .note-date{font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); margin-bottom:3px;}
+  .note textarea{width:100%; border:none; background:none; font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; line-height:1.6; resize:vertical; min-height:44px; padding:0;}
+  .note textarea:focus{outline:none;}
+
+  .tools{display:flex; gap:8px; align-items:center;}
+  .toolbtn{background:none; border:1px solid var(--line); padding:6px 11px; font-size:11.5px; font-family:'IBM Plex Mono',monospace; cursor:pointer; border-radius:1px; color:var(--muted);}
+  .toolbtn:hover{border-color:var(--teal); color:var(--teal);}
+
+  .taxo{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;}
+  .taxo-chip{font-family:'IBM Plex Mono',monospace; font-size:11px; padding:5px 10px; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--teal-ink);}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOCK SCREEN ===================== -->
+<div id="lock">
+  <div class="lock-card" id="lockCard"></div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <aside>
+    <div class="brand">
+      <div class="brand-eyebrow">Private · Research Ledger</div>
+      <div class="brand-title">Next-Generation<br>Industrial Policy<br>&amp; Catch-Up</div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="navfoot mono">KNU · Kim Jueon</div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<script>
+/* ============================================================
+   DATA MODEL — stored in localStorage under "diss_ledger_v1"
+   ============================================================ */
+const STORE_KEY = "diss_ledger_v1";
+const AUTH_KEY  = "diss_ledger_auth_v1";
+
+function defaultData(){
+  return {
+    currentFocus: "Finalizing the 7 IPHF Level 1 groups and the GTA concordance mapping before moving to OECD/WTO/national document coding.",
+    chapters: {
+      ch1: {
+        title: "Chapter 1 — A Harmonization Framework for Measuring Industrial Policy (IPHF & IPI)",
+        items: [
+          /* Phase 1 — Conceptual foundation */
+          {t:"[Phase 1] Read & summarize Johnson (1982) — historical definition/origins of industrial policy", s:"todo"},
+          {t:"[Phase 1] Read & summarize Corden (1980) and Warwick (2013) — economic-policy perspective", s:"todo"},
+          {t:"[Phase 1] Read & summarize USITC (1983) and Kapczynski & Michaels (2023) — legal perspective", s:"todo"},
+          {t:"[Phase 1] Write the dissertation's formal IP definition (deliberate government action altering domestic economic composition for a public goal)", s:"todo"},
+          {t:"[Phase 1] Write positioning paragraph distinguishing this chapter from juhasz2024 and juhasz2025a (harmonization vs. rationale vs. identification)", s:"todo"},
+
+          /* Phase 2 — IPHF taxonomy */
+          {t:"[Phase 2] Review MAST chapters, list all relevant instrument categories", s:"doing"},
+          {t:"[Phase 2] Review OECD instrument logic, cross-check against MAST", s:"todo"},
+          {t:"[Phase 2] Finalize the 7 Level 1 groups: TAR, NTM, FIS, FIN, TRD, PRO, FRM (with clear definitions)", s:"doing"},
+          {t:"[Phase 2] Build Level 2 sub-categories for each Level 1 group", s:"todo"},
+          {t:"[Phase 2] Build Level 3 sub-categories for each Level 2 group", s:"todo"},
+          {t:"[Phase 2] Write a coding codebook describing classification criteria at each level", s:"todo"},
+
+          /* Phase 3 — Concordance tables */
+          {t:"[Phase 3] Map GTA intervention types → IPHF codes", s:"doing"},
+          {t:"[Phase 3] Map NIPO categories → IPHF codes (check NIPO's native schema first)", s:"todo"},
+          {t:"[Phase 3] Map WTO notification types → IPHF codes", s:"todo"},
+          {t:"[Phase 3] Vietnam: collect national policy documents, manual coding (GTA/NIPO coverage gap)", s:"todo"},
+          {t:"[Phase 3] Consolidate all concordance tables into a single unified file (source code ↔ IPHF code)", s:"todo"},
+
+          /* Phase 4 — Validation (coder consensus) */
+          {t:"[Phase 4] Draw a random validation sample (~100–200 entries) across sources", s:"todo"},
+          {t:"[Phase 4] Recruit/confirm independent coders (minimum 2, ideally 3)", s:"todo"},
+          {t:"[Phase 4] Write coding instructions based on the Phase 2 codebook", s:"todo"},
+          {t:"[Phase 4] Run independent coding rounds with each coder", s:"todo"},
+          {t:"[Phase 4] Compute inter-rater agreement (Cohen's kappa if 2 coders, Fleiss' kappa if 3+)", s:"todo"},
+          {t:"[Phase 4] Resolve disagreements, refine codebook if kappa is low", s:"todo"},
+          {t:"[Phase 4] Record validation results for inclusion in the chapter (kappa table)", s:"todo"},
+
+          /* Phase 5 — IPI panel construction */
+          {t:"[Phase 5] Define the formula for the 4 IPI dimensions: Intensity, Selectivity, Discrimination, Persistence", s:"doing"},
+          {t:"[Phase 5] Write code (Python/R/Stata) to aggregate harmonized entries into a country-sector-year panel", s:"todo"},
+          {t:"[Phase 5] Pilot the panel construction on one country (Vietnam) before scaling up", s:"todo"},
+          {t:"[Phase 5] Extend panel construction to Korea, Taiwan, China", s:"todo"},
+          {t:"[Phase 5] Check coverage across 2009–2024/2025, handle missing data/gaps", s:"todo"},
+          {t:"[Phase 5] Export final panel dataset (CSV/dta) + data dictionary", s:"todo"},
+
+          /* Phase 6 — Robustness / comparison */
+          {t:"[Phase 6] Recompute indicators using GTA-only (unharmonized) data for comparison", s:"todo"},
+          {t:"[Phase 6] Compare coverage/magnitude: harmonized IPI vs. GTA-only, especially for Vietnam", s:"todo"},
+          {t:"[Phase 6] Visualize the before/after harmonization comparison", s:"todo"},
+
+          /* Phase 7 — Writing */
+          {t:"[Phase 7] Write Introduction & Motivation", s:"todo"},
+          {t:"[Phase 7] Write Literature Review (integrate Phase 1 definitional work)", s:"todo"},
+          {t:"[Phase 7] Write IPHF taxonomy section (Phase 2)", s:"todo"},
+          {t:"[Phase 7] Write Methodology section (concordance + validation, Phases 3–4)", s:"todo"},
+          {t:"[Phase 7] Write IPI construction & descriptive results section (Phase 5)", s:"todo"},
+          {t:"[Phase 7] Write Robustness section (Phase 6)", s:"todo"},
+          {t:"[Phase 7] Write Discussion (link to Chapter 2) + Conclusion", s:"todo"},
+          {t:"[Phase 7] Send first full draft to Prof. Lee Young-jae and Prof. Oh Jong-seok for feedback", s:"todo"},
+
+          /* Carried over from original list */
+          {t:"Case selection: Korea, Taiwan, China, Vietnam (Japan as background/reference only)", s:"done"},
+          {t:"Document Vietnam's limited GTA/NIPO coverage as a research gap", s:"todo"},
+          {t:"Panel coverage 2009–2024/2025 (bounded by GTA/NIPO starting in 2009)", s:"done"},
+        ]
+      },
+      ch2: {
+        title: "Chapter 2 — Industry-level causal effects",
+        items: [
+          {t:"Subfiles architecture for standalone Chapter 2 compilation", s:"done"},
+          {t:"ch2- label prefix convention to avoid collision with Chapter 1", s:"done"},
+          {t:"Design identification strategy (industry-level)", s:"todo"},
+          {t:"Link the IPI panel from Chapter 1 into industry outcomes", s:"todo"},
+        ]
+      },
+      ch3: {
+        title: "Chapter 3 — VITA Model: Heterogeneous-Agent GE for Vietnam",
+        items: [
+          {t:"Aiyagari foundation (MATLAB) from master's work — validated", s:"done"},
+          {t:"Gini results: Pre-reform 0.561 / TFP-only 0.511 / Finance-only 0.546 / Combined 0.497", s:"done"},
+          {t:"Calibration: β=0.954, δ=0.039766, α=0.36 (labsh missing in PWT 11.0, uses Aiyagari benchmark)", s:"done"},
+          {t:"MIT shooting algorithm for the transition path (replaces exponential interpolation)", s:"done"},
+          {t:"Comparative benchmark with South Korea", s:"todo"},
+          {t:"Link TFP/credit path to the IPI panel (connect all 3 chapters)", s:"todo"},
+        ]
+      }
+    },
+    citations: [
+      {key:"Ciaffi et al. (2025)", role:"Anchor — Theory", note:"Theoretical foundation for Ch.1", flag:false, chapter:"ch1"},
+      {key:"juhasz2024", role:"Anchor — Rationale (Annual Review)", note:"Economics / rationale for next-gen IP", flag:true, chapter:"ch1"},
+      {key:"juhasz2025a", role:"Anchor — Measurement (NBER 2025)", note:"Measurement philosophy — must NOT be swapped with juhasz2024", flag:true, chapter:"ch1"},
+      {key:"Johnson1982", role:"Definitional foundation — Historical", note:"Historical grounding for IP definition, Phase 1", flag:false, chapter:"ch1"},
+      {key:"Corden1980", role:"Definitional foundation — Economic policy", note:"Economic-policy grounding for IP definition, Phase 1", flag:false, chapter:"ch1"},
+      {key:"Warwick2013", role:"Definitional foundation — Economic policy", note:"Economic-policy grounding for IP definition, Phase 1", flag:false, chapter:"ch1"},
+      {key:"USITC1983", role:"Definitional foundation — Legal", note:"Legal grounding for IP definition, Phase 1", flag:false, chapter:"ch1"},
+      {key:"KapczynskiMichaels2023", role:"Definitional foundation — Legal", note:"Legal grounding for IP definition, Phase 1", flag:false, chapter:"ch1"},
+      {key:"Aiyagari1994", role:"Ch.3 model foundation", note:"Incomplete markets HA model", flag:false, chapter:"ch3"},
+      {key:"PWT11", role:"TFP data", note:"Penn World Table 11.0", flag:false, chapter:"ch3"},
+      {key:"Phan2024", role:"Target Gini moments", note:"Forum for Social Economics 53(4), VHLSS moments", flag:false, chapter:"ch3"},
+      {key:"WorldBankWDI", role:"Private credit/GDP data", note:"World Development Indicators", flag:false, chapter:"ch3"},
+    ],
+    todos: [
+      {t:"Finalize the Level 1 taxonomy list before building the concordance", done:false},
+      {t:"Check NIPO's native schema before mapping", done:false},
+      {t:"Write a shared codebook for WTO + national document coding", done:false},
+      {t:"Consider an inter-coder reliability check (Cohen's kappa) for the manual coding portion", done:false},
+      {t:"Resolve reconciliation: 4 dimensions (measurement) vs 3-level taxonomy (classification)", done:true},
+    ],
+    notes: [
+      {d:"2026-08-08", t:"Added a detailed, phase-by-phase Chapter 1 task list (7 phases: conceptual foundation → IPHF taxonomy → concordance tables → coder validation → IPI panel construction → robustness comparison → writing). Each item tagged with [Phase N] for easy scanning."},
+      {d:"2026-08-07", t:"Confirmed: the 3-level taxonomy answers 'what type', the 4 dimensions answer 'how strong'. The two schemas are not competing with each other."},
+    ]
+  };
+}
+
+let DATA = null;
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    DATA = raw ? JSON.parse(raw) : defaultData();
+    if(typeof DATA.currentFocus !== "string") DATA.currentFocus = "";
+    if(Array.isArray(DATA.citations)) DATA.citations.forEach(c=>{ if(!c.chapter) c.chapter = "general"; });
+  }catch(e){ DATA = defaultData(); }
+}
+function save(){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(DATA));
+    const el = document.getElementById("savedStamp");
+    if(el) el.textContent = "saved " + new Date().toLocaleTimeString('en-US');
+  }catch(e){ console.error("Storage error", e); }
+}
+
+/* ============================================================
+   PASSWORD GATE (client-side hash, first run sets the password)
+   ============================================================ */
+async function sha256(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+function renderLock(){
+  const card = document.getElementById("lockCard");
+  const hasPass = !!localStorage.getItem(AUTH_KEY);
+  card.innerHTML = `
+    <div class="lock-eyebrow">${hasPass ? "Private lock" : "First-time setup"}</div>
+    <div class="lock-title display">Research Ledger</div>
+    <p class="lock-sub">${hasPass ? "Enter your password to view dissertation progress." : "Set a password to protect this page. Stored only in this browser, never sent anywhere."}</p>
+    <input type="password" id="pw" placeholder="${hasPass ? "Password" : "Set a new password"}" autocomplete="${hasPass?'current-password':'new-password'}">
+    ${!hasPass ? '<input type="password" id="pw2" placeholder="Confirm password" style="margin-top:8px" autocomplete="new-password">' : ''}
+    <button class="lock-btn" id="lockBtn">${hasPass ? "Unlock" : "Set password & enter"}</button>
+    <div class="lock-msg" id="lockMsg"></div>
+    <div class="lock-foot mono">Client-side protection — enough to stop a casual viewer, not a substitute for real server-side auth. Forgot your password? Open DevTools Console and run: <br><b>localStorage.removeItem("${AUTH_KEY}")</b></div>
+  `;
+  document.getElementById("pw").addEventListener("keydown", e=>{ if(e.key==="Enter") attempt(); });
+  const pw2 = document.getElementById("pw2");
+  if(pw2) pw2.addEventListener("keydown", e=>{ if(e.key==="Enter") attempt(); });
+  document.getElementById("lockBtn").addEventListener("click", attempt);
+}
+
+async function attempt(){
+  const hasPass = !!localStorage.getItem(AUTH_KEY);
+  const pw = document.getElementById("pw").value;
+  const msg = document.getElementById("lockMsg");
+  if(!pw){ msg.textContent = "Please enter a password."; return; }
+
+  if(!hasPass){
+    const pw2 = document.getElementById("pw2").value;
+    if(pw.length < 4){ msg.textContent = "Password should be at least 4 characters."; return; }
+    if(pw !== pw2){ msg.textContent = "Passwords don't match."; return; }
+    const hash = await sha256(pw);
+    localStorage.setItem(AUTH_KEY, hash);
+    unlock();
+    return;
+  }
+  const hash = await sha256(pw);
+  if(hash === localStorage.getItem(AUTH_KEY)){
+    unlock();
+  }else{
+    msg.textContent = "Incorrect password.";
+  }
+}
+
+function unlock(){
+  document.getElementById("lock").style.display = "none";
+  document.getElementById("app").classList.add("show");
+  load();
+  buildNav();
+  showPage(currentPage);
+}
+
+/* ============================================================
+   APP UI
+   ============================================================ */
+const PAGES = [
+  {id:"overview", num:"00", label:"Overview"},
+  {id:"ch1", num:"01", label:"Chapter 1"},
+  {id:"ch2", num:"02", label:"Chapter 2"},
+  {id:"ch3", num:"03", label:"Chapter 3"},
+  {id:"citations", num:"04", label:"Citations"},
+  {id:"todo", num:"05", label:"To-do"},
+  {id:"notes", num:"06", label:"Notes"},
+];
+let currentPage = "overview";
+
+function buildNav(){
+  const nav = document.getElementById("nav");
+  nav.innerHTML = PAGES.map(p=>
+    `<button class="navtab" data-id="${p.id}"><span class="num">${p.num}</span>${p.label}</button>`
+  ).join("");
+  nav.querySelectorAll(".navtab").forEach(btn=>{
+    btn.addEventListener("click", ()=>{ currentPage = btn.dataset.id; showPage(currentPage); });
+  });
+}
+
+function statusLabel(s){ return s==="done"?"Done":s==="doing"?"In progress":"To do"; }
+function nextStatus(s){ return s==="todo"?"doing":s==="doing"?"done":"todo"; }
+
+function showPage(id){
+  document.querySelectorAll(".navtab").forEach(b=>b.classList.toggle("active", b.dataset.id===id));
+  const main = document.getElementById("main");
+
+  if(id==="overview"){ main.innerHTML = renderOverview(); }
+  else if(id==="ch1"||id==="ch2"||id==="ch3"){ main.innerHTML = renderChapter(id); }
+  else if(id==="citations"){ main.innerHTML = renderCitations(); }
+  else if(id==="todo"){ main.innerHTML = renderTodo(); }
+  else if(id==="notes"){ main.innerHTML = renderNotes(); }
+
+  attachHandlers(id);
+  attachToolHandlers();
+}
+
+function attachToolHandlers(){
+  const exportBtn = document.getElementById("exportBtn");
+  const importBtn = document.getElementById("importBtn");
+  const importFile = document.getElementById("importFile");
+  if(exportBtn) exportBtn.addEventListener("click", ()=>{
+    const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url; a.download = `research-ledger-backup-${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+  if(importBtn) importBtn.addEventListener("click", ()=> importFile.click());
+  if(importFile) importFile.addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        if(!parsed.chapters || !parsed.todos || !parsed.notes || !parsed.citations){
+          alert("This file doesn't look like a valid Research Ledger backup.");
+          return;
+        }
+        if(confirm("Import this backup? It will replace everything currently shown (your existing data stays safe in earlier backups, but will be overwritten here).")){
+          DATA = parsed; save(); showPage(currentPage);
+        }
+      }catch(err){
+        alert("Couldn't read that file — make sure it's a backup exported from this page.");
+      }
+      importFile.value = "";
+    };
+    reader.readAsText(file);
+  });
+}
+
+function pageHead(title, sub){
+  return `<div class="pagehead">
+    <div><h1 class="display">${title}</h1><p>${sub}</p></div>
+    <div class="topline">
+      <div class="tools" style="justify-content:flex-end; margin-bottom:6px;">
+        <button class="toolbtn" id="exportBtn">↓ Export backup</button>
+        <button class="toolbtn" id="importBtn">↑ Import backup</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none">
+      </div>
+      Kim Jueon · KNU Economics<br><span class="savedstamp mono" id="savedStamp">no unsaved changes</span>
+    </div>
+  </div>`;
+}
+
+function renderOverview(){
+  const allItems = Object.values(DATA.chapters).flatMap(c=>
+    c.items.map(it=>({...it, chapterTitle:c.title}))
+  );
+  const done = allItems.filter(i=>i.s==="done").length;
+  const doing = allItems.filter(i=>i.s==="doing").length;
+  const todo = allItems.filter(i=>i.s==="todo").length;
+  const openTodos = DATA.todos.filter(t=>!t.done).length;
+  const inProgressItems = allItems.filter(i=>i.s==="doing");
+
+  const inProgressRows = inProgressItems.length
+    ? inProgressItems.map(i=>`
+        <div class="item-row">
+          <span class="stamp doing" style="cursor:default;">In progress</span>
+          <span class="item-text" style="padding-top:2px;">${escapeHtml(i.t)}
+            <span style="color:var(--muted); font-size:11.5px; display:block; margin-top:2px;">${i.chapterTitle.split("—")[0].trim()}</span>
+          </span>
+        </div>`).join("")
+    : `<p class="card-sub" style="margin:0;">Nothing marked "in progress" right now — go to a chapter page and click a status stamp to update it.</p>`;
+
+  return pageHead("Next-Generation Industrial Policy and Economic Catch-Up",
+    "Evidence from East and Southeast Asia — a three-chapter monograph moving from policy measurement → industry-level effects → household-level distributional consequences.") +
+  `<div class="card">
+    <h2>Currently working on</h2>
+    <p class="card-sub">Editable — updates save automatically. This is your own running status note.</p>
+    <textarea id="currentFocusInput" style="width:100%; min-height:64px; border:1px dashed var(--line); background:transparent; font-family:'IBM Plex Sans',sans-serif; font-size:14px; line-height:1.6; padding:10px; border-radius:1px; resize:vertical;">${escapeHtml(DATA.currentFocus || "")}</textarea>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h2>Overall progress</h2>
+      <p class="card-sub">${done} done · ${doing} in progress · ${todo} to do, across all 3 chapters</p>
+      <div class="taxo">
+        <span class="taxo-chip">Ch.1 Measurement</span>
+        <span class="taxo-chip">Ch.2 Industry effects</span>
+        <span class="taxo-chip">Ch.3 Household GE (VITA)</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Needs attention</h2>
+      <p class="card-sub">${openTodos} open items on the to-do list</p>
+      <div class="taxo">
+        <span class="taxo-chip" style="border-color:var(--rust); color:var(--rust)">juhasz2024 ≠ juhasz2025a</span>
+        <span class="taxo-chip" style="border-color:var(--ochre); color:var(--ochre)">Vietnam GTA/NIPO gap</span>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>In progress right now</h2>
+    <p class="card-sub">Pulled live from Chapters 1–3. Click any stamp on a chapter page to move it to Done.</p>
+    ${inProgressRows}
+  </div>
+  <div class="card">
+    <h2>Three-chapter structure</h2>
+    <p class="card-sub">Case selection: South Korea, Taiwan, China, Vietnam. Japan appears only as a reference example (not a catch-up economy).</p>
+    <table>
+      <tr><th>Chapter</th><th>Focus</th><th>Method</th></tr>
+      <tr><td class="key">Ch.1</td><td>IPHF + IPI — harmonizing GTA/NIPO/OECD/WTO/national docs</td><td>Concordance mapping, not NLP classification</td></tr>
+      <tr><td class="key">Ch.2</td><td>Industry-level causal effects</td><td>Panel built on the Ch.1 IPI</td></tr>
+      <tr><td class="key">Ch.3</td><td>Household-level distributional consequences, Vietnam</td><td>Aiyagari heterogeneous-agent GE (VITA model)</td></tr>
+    </table>
+  </div>`;
+}
+
+function renderChapter(id){
+  const ch = DATA.chapters[id];
+  const rows = ch.items.map((it, idx)=>`
+    <div class="item-row" data-idx="${idx}">
+      <span class="stamp ${it.s}" data-action="cycle">${statusLabel(it.s)}</span>
+      <span class="item-text"><input type="text" value="${escapeAttr(it.t)}" data-action="edit"></span>
+      <button class="item-del" data-action="del">✕</button>
+    </div>`).join("");
+
+  return pageHead(ch.title, "Click a status stamp to cycle To do → In progress → Done. Edit text directly in the field.") +
+  `<div class="card">
+    <h2>Chapter task list</h2>
+    <div id="itemList">${rows}</div>
+    <div class="addrow">
+      <input type="text" id="newItemInput" placeholder="Add a new item…">
+      <button class="addbtn" id="addItemBtn">Add</button>
+    </div>
+  </div>`;
+}
+
+function renderCitations(){
+  const groups = [
+    {id:"ch1", label:"Chapter 1 — Measurement"},
+    {id:"ch2", label:"Chapter 2 — Industry effects"},
+    {id:"ch3", label:"Chapter 3 — Household GE (VITA)"},
+    {id:"general", label:"General / not chapter-specific"},
+  ];
+
+  const sections = groups.map(g=>{
+    const rows = DATA.citations.map((c, idx)=> ({c, idx})).filter(x=>x.c.chapter===g.id);
+    const rowsHtml = rows.length ? rows.map(({c,idx})=>`
+      <tr data-idx="${idx}">
+        <td><input type="text" class="key" value="${escapeAttr(c.key)}" data-action="edit-key" style="width:100%;border:none;background:none;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal-ink);font-weight:600;"></td>
+        <td><input type="text" value="${escapeAttr(c.role)}" data-action="edit-role" style="width:100%;border:none;background:none;font-family:'IBM Plex Sans',sans-serif;font-size:13px;"></td>
+        <td><input type="text" value="${escapeAttr(c.note)}" data-action="edit-note" style="width:100%;border:none;background:none;font-family:'IBM Plex Sans',sans-serif;font-size:13px;"></td>
+        <td>
+          <select data-action="edit-chapter" style="font-family:'IBM Plex Mono',monospace; font-size:11px; border:1px solid var(--line); background:#fff; padding:3px 4px;">
+            ${groups.map(gg=>`<option value="${gg.id}" ${gg.id===c.chapter?'selected':''}>${gg.id==='general'?'General':gg.id.toUpperCase()}</option>`).join("")}
+          </select>
+        </td>
+        <td><span class="flag" data-action="toggle-flag" style="cursor:pointer; opacity:${c.flag?1:0.35};">${c.flag ? "Double-check" : "flag off"}</span></td>
+        <td><button class="item-del" data-action="del-citation">✕</button></td>
+      </tr>`).join("")
+      : `<tr><td colspan="6" style="color:var(--muted); font-size:12.5px; font-style:italic;">No citations in this chapter yet.</td></tr>`;
+
+    return `<div class="card">
+      <h2>${g.label}</h2>
+      <table class="citationTable" data-chapter="${g.id}">
+        <tr><th>Key</th><th>Role</th><th>Note</th><th>Chapter</th><th>Flag</th><th></th></tr>
+        ${rowsHtml}
+      </table>
+      <div class="addrow">
+        <input type="text" class="newCiteKey" placeholder="Citation key…" style="max-width:160px;">
+        <input type="text" class="newCiteRole" placeholder="Role…" style="max-width:180px;">
+        <input type="text" class="newCiteNote" placeholder="Note…">
+        <button class="addbtn addCiteBtn" data-chapter="${g.id}">Add to ${g.id==='general'?'General':g.id.toUpperCase()}</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  return pageHead("Citation tracker", "Organized by chapter — especially: never swap juhasz2024 and juhasz2025a. Click a cell to edit, use the dropdown to move a citation to another chapter.") + sections;
+}
+
+function renderTodo(){
+  const rows = DATA.todos.map((t,idx)=>`
+    <div class="item-row" data-idx="${idx}">
+      <span class="stamp ${t.done?'done':'todo'}" data-action="toggle" style="cursor:pointer;">${t.done?'Done':'Open'}</span>
+      <span class="item-text" style="${t.done?'text-decoration:line-through;color:var(--muted)':''}">
+        <input type="text" value="${escapeAttr(t.t)}" data-action="edit">
+      </span>
+      <button class="item-del" data-action="del">✕</button>
+    </div>`).join("");
+  return pageHead("To-do", "General tasks not tied to a specific chapter.") +
+  `<div class="card">
+    <div id="todoList">${rows}</div>
+    <div class="addrow">
+      <input type="text" id="newTodoInput" placeholder="Add a new task…">
+      <button class="addbtn" id="addTodoBtn">Add</button>
+    </div>
+  </div>`;
+}
+
+function renderNotes(){
+  const rows = DATA.notes.map((n,idx)=>`
+    <div class="note" data-idx="${idx}">
+      <div class="note-date mono">${n.d} <button class="item-del" data-action="delnote" style="float:right">✕</button></div>
+      <textarea data-action="editnote">${escapeHtml(n.t)}</textarea>
+    </div>`).join("");
+  return pageHead("Research notes", "A log of ideas, findings, or things to remember between work sessions.") +
+  `<div class="card">
+    <div id="noteList">${rows}</div>
+    <div class="addrow">
+      <input type="text" id="newNoteInput" placeholder="Write a new note, then click Add…">
+      <button class="addbtn" id="addNoteBtn">Add</button>
+    </div>
+  </div>`;
+}
+
+function escapeAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+function attachHandlers(id){
+  if(id==="overview"){
+    const cf = document.getElementById("currentFocusInput");
+    if(cf) cf.addEventListener("change", ()=>{ DATA.currentFocus = cf.value; save(); });
+  }
+  if(id==="citations"){
+    document.querySelectorAll('.citationTable [data-action="edit-key"]').forEach(el=>{
+      el.addEventListener("change", ()=>{ const idx=el.closest("tr").dataset.idx; DATA.citations[idx].key=el.value; save(); });
+    });
+    document.querySelectorAll('.citationTable [data-action="edit-role"]').forEach(el=>{
+      el.addEventListener("change", ()=>{ const idx=el.closest("tr").dataset.idx; DATA.citations[idx].role=el.value; save(); });
+    });
+    document.querySelectorAll('.citationTable [data-action="edit-note"]').forEach(el=>{
+      el.addEventListener("change", ()=>{ const idx=el.closest("tr").dataset.idx; DATA.citations[idx].note=el.value; save(); });
+    });
+    document.querySelectorAll('.citationTable [data-action="edit-chapter"]').forEach(el=>{
+      el.addEventListener("change", ()=>{
+        const idx=el.closest("tr").dataset.idx;
+        DATA.citations[idx].chapter=el.value; save(); showPage(id);
+      });
+    });
+    document.querySelectorAll('.citationTable [data-action="toggle-flag"]').forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const idx=el.closest("tr").dataset.idx;
+        DATA.citations[idx].flag = !DATA.citations[idx].flag; save(); showPage(id);
+      });
+    });
+    document.querySelectorAll('.citationTable [data-action="del-citation"]').forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const idx=el.closest("tr").dataset.idx;
+        DATA.citations.splice(idx,1); save(); showPage(id);
+      });
+    });
+    document.querySelectorAll('.addCiteBtn').forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const wrap = btn.closest(".addrow");
+        const k = wrap.querySelector(".newCiteKey");
+        const r = wrap.querySelector(".newCiteRole");
+        const n = wrap.querySelector(".newCiteNote");
+        if(!k.value.trim()) return;
+        DATA.citations.push({key:k.value.trim(), role:r.value.trim(), note:n.value.trim(), flag:false, chapter:btn.dataset.chapter});
+        save(); showPage(id);
+      });
+    });
+  }
+  if(id==="ch1"||id==="ch2"||id==="ch3"){
+    const ch = DATA.chapters[id];
+    document.querySelectorAll('#itemList [data-action="cycle"]').forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const idx = el.closest(".item-row").dataset.idx;
+        ch.items[idx].s = nextStatus(ch.items[idx].s);
+        save(); showPage(id);
+      });
+    });
+    document.querySelectorAll('#itemList [data-action="edit"]').forEach(el=>{
+      el.addEventListener("change", ()=>{
+        const idx = el.closest(".item-row").dataset.idx;
+        ch.items[idx].t = el.value; save();
+      });
+    });
+    document.querySelectorAll('#itemList [data-action="del"]').forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const idx = el.closest(".item-row").dataset.idx;
+        ch.items.splice(idx,1); save(); showPage(id);
+      });
+    });
+    document.getElementById("addItemBtn").addEventListener("click", ()=>{
+      const inp = document.getElementById("newItemInput");
+      if(!inp.value.trim()) return;
+      ch.items.push({t:inp.value.trim(), s:"todo"}); save(); showPage(id);
+    });
+  }
+  if(id==="todo"){
+    document.querySelectorAll('#todoList [data-action="toggle"]').forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const idx = el.closest(".item-row").dataset.idx;
+        DATA.todos[idx].done = !DATA.todos[idx].done; save(); showPage(id);
+      });
+    });
+    document.querySelectorAll('#todoList [data-action="edit"]').forEach(el=>{
+      el.addEventListener("change", ()=>{
+        const idx = el.closest(".item-row").dataset.idx;
+        DATA.todos[idx].t = el.value; save();
+      });
+    });
+    document.querySelectorAll('#todoList [data-action="del"]').forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const idx = el.closest(".item-row").dataset.idx;
+        DATA.todos.splice(idx,1); save(); showPage(id);
+      });
+    });
+    document.getElementById("addTodoBtn").addEventListener("click", ()=>{
+      const inp = document.getElementById("newTodoInput");
+      if(!inp.value.trim()) return;
+      DATA.todos.push({t:inp.value.trim(), done:false}); save(); showPage(id);
+    });
+  }
+  if(id==="notes"){
+    document.querySelectorAll('#noteList [data-action="editnote"]').forEach(el=>{
+      el.addEventListener("change", ()=>{
+        const idx = el.closest(".note").dataset.idx;
+        DATA.notes[idx].t = el.value; save();
+      });
+    });
+    document.querySelectorAll('#noteList [data-action="delnote"]').forEach(el=>{
+      el.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const idx = el.closest(".note").dataset.idx;
+        DATA.notes.splice(idx,1); save(); showPage(id);
+      });
+    });
+    document.getElementById("addNoteBtn").addEventListener("click", ()=>{
+      const inp = document.getElementById("newNoteInput");
+      if(!inp.value.trim()) return;
+      DATA.notes.unshift({d:todayStr(), t:inp.value.trim()}); save(); showPage(id);
+    });
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderLock();
+</script>
+</body>
+</html>
